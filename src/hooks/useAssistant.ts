@@ -23,6 +23,11 @@ const preferredVoices = [
   'zira', 'jenny', 'aria', 'samantha', 'female', 'karen', 'moira', 'google us english',
 ];
 
+const isTouchDevice = () =>
+  typeof window !== 'undefined' &&
+  ('ontouchstart' in window ||
+    (typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches));
+
 export function useAssistant() {
   const { projects, certificates, services, config } = useData();
   const [mode, setMode] = useState<AssistantMode>('idle');
@@ -94,6 +99,18 @@ export function useAssistant() {
       // Ignore unlock failures; the browser still shows text captions.
     }
   }, []);
+
+  // Some mobile users tap elsewhere first; unlock on the very first touch or
+  // click anywhere so a later assistant tap can speak immediately.
+  useEffect(() => {
+    const unlock = () => unlockMobileAudio();
+    document.addEventListener('touchend', unlock, { once: true, capture: true });
+    document.addEventListener('click', unlock, { once: true, capture: true });
+    return () => {
+      document.removeEventListener('touchend', unlock, { capture: true });
+      document.removeEventListener('click', unlock, { capture: true });
+    };
+  }, [unlockMobileAudio]);
 
   const clearTimer = useCallback(() => {
     if (timerRef.current !== null) {
@@ -167,6 +184,7 @@ export function useAssistant() {
       try {
         const synth = window.speechSynthesis;
         const utterance = new SpeechSynthesisUtterance(input);
+        utterance.lang = 'en-US';
         const voice = pickVoice();
         if (voice) utterance.voice = voice;
         utterance.rate = 0.98;
@@ -260,7 +278,23 @@ export function useAssistant() {
         : 'To contact or hire Amna, please use the contact form on this site.',
       'Thank you for visiting. Type a question any time and I will do my best to help.',
     ];
-    timerRef.current = window.setTimeout(() => speakQueue(lines), 1250);
+    if (isTouchDevice()) {
+      // Start audible speech inside the tap itself. Mobile browsers block
+      // speech that begins after a delay, even when the engine is unlocked.
+      try {
+        if ('speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined') {
+          const hello = new SpeechSynthesisUtterance('Hello!');
+          hello.lang = 'en-US';
+          hello.volume = 1;
+          window.speechSynthesis.speak(hello);
+        }
+      } catch {
+        // The visible caption is the fallback.
+      }
+      timerRef.current = window.setTimeout(() => speakQueue(lines), 900);
+    } else {
+      timerRef.current = window.setTimeout(() => speakQueue(lines), 1250);
+    }
   }, [certificates, clearTimer, config.contactEmail, config.settings.contactEmail, projects, services, speakQueue, stop, unlockMobileAudio]);
 
   const buildAnswer = useCallback((raw: string) => {
