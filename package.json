@@ -1,0 +1,40 @@
+{
+  "name": "amna-sahar-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Premium AI Developer & Creative Web Developer portfolio for Amna Sahar",
+  "scripts": {
+    "dev": "concurrently -n api,web -c magenta,cyan \"npm:dev:server\" \"npm:dev:web\"",
+    "dev:server": "node --watch server/index.js",
+    "dev:web": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build",
+    "start": "node server/index.js",
+    "preview": "npm run build && npm start",
+    "test:api": "node scripts/smoke-test.mjs",
+    "test:ui": "node scripts/ui-check.mjs"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.7.6",
+    "@react-three/fiber": "^9.3.0",
+    "express": "^4.21.2",
+    "lucide-react": "^0.468.0",
+    "nodemailer": "^6.10.1",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^5.0.2",
+    "concurrently": "^9.2.1",
+    "playwright-core": "^1.65.1",
+    "typescript": "~5.9.2",
+    "vite": "^7.1.5"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  }
+}
