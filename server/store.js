@@ -62,18 +62,23 @@ async function listBlobs() {
   return list({ prefix: blobKey, token: process.env.BLOB_READ_WRITE_TOKEN });
 }
 
+function stableBlobUrl() {
+  const storeId = process.env.BLOB_STORE_ID;
+  if (!storeId) return null;
+  const host = storeId.replace(/^store_/i, '').toLowerCase();
+  return `https://${host}.public.blob.vercel-storage.com/${blobKey}`;
+}
+
 async function writeBlob(next) {
-  const { put, del } = await import('@vercel/blob');
-  const token = process.env.BLOB_READ_WRITE_TOKEN;
-  const existing = await listBlobs();
-  for (const blob of existing.blobs) {
-    try { await del(blob.url, { token }); } catch { /* ignore stale versions */ }
-  }
+  const { put } = await import('@vercel/blob');
+  // addRandomSuffix:false keeps one stable object, so reads never depend on
+  // an eventually-consistent blob listing.
   await put(blobKey, JSON.stringify(next), {
     access: 'public',
     contentType: 'application/json',
     addRandomSuffix: false,
-    token,
+    allowOverwrite: true,
+    token: process.env.BLOB_READ_WRITE_TOKEN,
   });
 }
 
@@ -81,13 +86,21 @@ async function writeBlob(next) {
 export async function refresh() {
   if (!hasBlob) return;
   try {
-    const listed = await listBlobs();
-    const latest = listed.blobs[0];
-    if (!latest) {
+    let url = stableBlobUrl();
+    if (!url) {
+      const listed = await listBlobs();
+      url = listed.blobs[0]?.url || null;
+    }
+    if (!url) {
       await writeBlob(database);
       return;
     }
-    const response = await fetch(latest.url, { cache: 'no-store' });
+    const freshUrl = `${url}${url.includes('?') ? '&' : '?'}__t=${Date.now()}`;
+    const response = await fetch(freshUrl, { cache: 'no-store' });
+    if (response.status === 404) {
+      await writeBlob(database);
+      return;
+    }
     if (!response.ok) throw new Error(`Blob read failed (${response.status})`);
     database = normalise(await response.json());
   } catch (error) {
