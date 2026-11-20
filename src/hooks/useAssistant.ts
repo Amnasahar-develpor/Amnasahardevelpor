@@ -40,19 +40,59 @@ export function useAssistant() {
   const queueRef = useRef<string[]>([]);
   const lastSpokenRef = useRef('');
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
+  const unlockedRef = useRef(false);
 
   useEffect(() => {
     if (!('speechSynthesis' in window)) {
       setSupported(false);
       return;
     }
-    const load = () => setVoices(window.speechSynthesis.getVoices());
+    const load = () => {
+      const loaded = window.speechSynthesis.getVoices();
+      voicesRef.current = loaded;
+      setVoices(loaded);
+    };
     load();
     window.speechSynthesis.addEventListener('voiceschanged', load);
     return () => {
       window.speechSynthesis.removeEventListener('voiceschanged', load);
       window.speechSynthesis.cancel();
     };
+  }, []);
+
+  // Mobile browsers (iOS Safari / Android Chrome) unlock speech and audio only
+  // while a tap/click handler is running. This must be called synchronously
+  // from the first user interaction, before any delayed speech starts.
+  const unlockMobileAudio = useCallback(() => {
+    if (unlockedRef.current) return;
+    unlockedRef.current = true;
+    try {
+      if ('speechSynthesis' in window) {
+        const synth = window.speechSynthesis;
+        const primer = new SpeechSynthesisUtterance(' ');
+        primer.volume = 0;
+        primer.rate = 10;
+        synth.speak(primer);
+        const loaded = synth.getVoices();
+        if (loaded.length) {
+          voicesRef.current = loaded;
+          setVoices(loaded);
+        }
+      }
+    } catch {
+      // Ignore browsers that reject silently-initialised speech.
+    }
+    try {
+      // Also unlock <audio> playback for the optional ElevenLabs voice path.
+      const silent = new Audio(
+        'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=',
+      );
+      silent.volume = 0;
+      void silent.play().catch(() => undefined);
+    } catch {
+      // Ignore unlock failures; the browser still shows text captions.
+    }
   }, []);
 
   const clearTimer = useCallback(() => {
@@ -63,8 +103,12 @@ export function useAssistant() {
   }, []);
 
   const pickVoice = useCallback(() => {
-    const english = voices.filter((voice) => voice.lang.toLowerCase().startsWith('en'));
-    const pool = english.length ? english : voices;
+    // Mobile browsers often populate voices asynchronously; read the live list
+    // first so a late `voiceschanged` does not leave us with no voice.
+    const live = 'speechSynthesis' in window ? window.speechSynthesis.getVoices() : [];
+    const available = live.length ? live : voicesRef.current.length ? voicesRef.current : voices;
+    const english = available.filter((voice) => voice.lang.toLowerCase().startsWith('en'));
+    const pool = english.length ? english : available;
     for (const name of preferredVoices) {
       const found = pool.find((voice) => voice.name.toLowerCase().includes(name));
       if (found) return found;
@@ -95,6 +139,8 @@ export function useAssistant() {
       return;
     }
     cancelOutput();
+    // Must run inside the tap/click that started this speech.
+    unlockMobileAudio();
     const generation = generationRef.current;
     lastSpokenRef.current = input;
     setAnswer(input);
@@ -113,20 +159,31 @@ export function useAssistant() {
     }
 
     const speakWithBrowser = () => {
-      if (!('speechSynthesis' in window)) {
+      if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
         setSupported(false);
         finish();
         return;
       }
-      const utterance = new SpeechSynthesisUtterance(input);
-      const voice = pickVoice();
-      if (voice) utterance.voice = voice;
-      utterance.rate = 0.98;
-      utterance.pitch = 1.06;
-      utterance.volume = 1;
-      utterance.onend = finish;
-      utterance.onerror = finish;
-      window.speechSynthesis.speak(utterance);
+      try {
+        const synth = window.speechSynthesis;
+        const utterance = new SpeechSynthesisUtterance(input);
+        const voice = pickVoice();
+        if (voice) utterance.voice = voice;
+        utterance.rate = 0.98;
+        utterance.pitch = 1.06;
+        utterance.volume = 1;
+        utterance.onend = finish;
+        utterance.onerror = finish;
+        // Cancel the silent primer (if any) and resume the engine before
+        // speaking. This is required on iOS Safari after a background/tab switch.
+        synth.cancel();
+        synth.resume();
+        synth.speak(utterance);
+      } catch {
+        // The visible caption in AssistantPanel is the safe text fallback.
+        setSupported(false);
+        finish();
+      }
     };
 
     if (config.voiceProvider === 'elevenlabs') {
@@ -159,7 +216,7 @@ export function useAssistant() {
     }
 
     speakWithBrowser();
-  }, [cancelOutput, config.voiceProvider, muted, pickVoice]);
+  }, [cancelOutput, config.voiceProvider, muted, pickVoice, unlockMobileAudio]);
 
   const speakQueue = useCallback((lines: string[]) => {
     stop();
@@ -174,6 +231,9 @@ export function useAssistant() {
 
   const greeting = useCallback(() => {
     stop();
+    // Unlock mobile speech while this tap is still active; the spoken tour
+    // starts after the short wave animation.
+    unlockMobileAudio();
     setMode('waving');
     clearTimer();
     const skillNames = skills.slice(0, 6).map((item) => item.title);
@@ -201,7 +261,7 @@ export function useAssistant() {
       'Thank you for visiting. Type a question any time and I will do my best to help.',
     ];
     timerRef.current = window.setTimeout(() => speakQueue(lines), 1250);
-  }, [certificates, clearTimer, config.contactEmail, config.settings.contactEmail, projects, services, speakQueue, stop]);
+  }, [certificates, clearTimer, config.contactEmail, config.settings.contactEmail, projects, services, speakQueue, stop, unlockMobileAudio]);
 
   const buildAnswer = useCallback((raw: string) => {
     const value = raw.toLowerCase();
@@ -267,6 +327,9 @@ export function useAssistant() {
       return;
     }
     stop();
+    // Unlock output now so the answer triggered by the recognition callback
+    // can still speak on mobile.
+    unlockMobileAudio();
     const recognition = new Recognition();
     recognition.lang = 'en-US';
     recognition.continuous = false;
@@ -283,7 +346,7 @@ export function useAssistant() {
     recognitionRef.current = recognition;
     setMode('listening');
     recognition.start();
-  }, [ask, stop]);
+  }, [ask, stop, unlockMobileAudio]);
 
   useEffect(() => () => {
     recognitionRef.current?.stop();
