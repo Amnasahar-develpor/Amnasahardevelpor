@@ -61,7 +61,8 @@ app.get('/api/health', (_req, res) => {
   res.json({ ok: true, service: 'amna-sahar-portfolio', storage: storageMode });
 });
 
-app.get('/api/config', (_req, res) => {
+app.get('/api/config', asyncRoute(async (_req, res) => {
+  await refresh();
   const db = read();
   res.json({
     voiceProvider: process.env.ELEVENLABS_API_KEY ? 'elevenlabs' : 'browser',
@@ -69,16 +70,17 @@ app.get('/api/config', (_req, res) => {
     settings: db.settings,
     storage: storageMode,
   });
-});
+}));
 
-app.get('/api/content', (_req, res) => {
+app.get('/api/content', asyncRoute(async (_req, res) => {
+  await refresh();
   const db = read();
   res.json({
     projects: db.projects,
     certificates: db.certificates,
     services: db.services,
   });
-});
+}));
 
 app.get('/api/admin/session', (req, res) => {
   res.json({ authenticated: verifySession(readCookie(req.headers.cookie, 'amna_admin')) });
@@ -196,9 +198,10 @@ app.delete('/api/admin/services/:id', requireAdmin, asyncRoute(async (req, res) 
   res.json({ ok: true });
 }));
 
-app.get('/api/admin/messages', requireAdmin, (_req, res) => {
+app.get('/api/admin/messages', requireAdmin, asyncRoute(async (_req, res) => {
+  await refresh();
   res.json(read().messages);
-});
+}));
 
 app.delete('/api/admin/messages/:id', requireAdmin, asyncRoute(async (req, res) => {
   await mutate((db) => {
