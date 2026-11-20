@@ -162,6 +162,7 @@ is needed. `vercel.json` configures the Vite build.
    - `BLOB_READ_WRITE_TOKEN` — **required for Admin Mode and the contact form**. Create a store at
      **Vercel → Storage → Create Database → Blob**, then copy its token here.
    - Optional: `CONTACT_EMAIL`, SMTP variables, `ELEVENLABS_API_KEY` / `ELEVENLABS_VOICE_ID`.
+     The admin cookie is automatically set to `Secure` on Vercel.
 3. Redeploy. The public gallery loads from the serverless API and the “Content service unavailable”
    banner disappears. Projects, certificates, services, images and messages persist in Vercel Blob.
 

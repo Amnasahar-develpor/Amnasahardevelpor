@@ -9,7 +9,8 @@ export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '12345';
 export const cookieOptions = {
   httpOnly: true,
   sameSite: 'lax',
-  secure: process.env.COOKIE_SECURE === 'true',
+  // Vercel is always HTTPS, so keep the admin session cookie secure there.
+  secure: process.env.COOKIE_SECURE === 'true' || process.env.VERCEL === '1',
   path: '/',
   maxAge: sessionHours * 60 * 60 * 1000,
 };
