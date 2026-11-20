@@ -12,7 +12,7 @@ export default function Hero() {
   const { config } = useData();
 
   return (
-    <section id="home" className="hero section-shell">
+    <section id="home" className="hero container">
       <div className="hero__grid">
         <div className="hero__copy">
           <div className="eyebrow"><Sparkles size={14} /> HELLO, I'M AMNA SAHAR</div>

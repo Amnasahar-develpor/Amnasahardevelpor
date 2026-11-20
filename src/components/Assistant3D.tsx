@@ -6,8 +6,8 @@ interface AssistantAvatarProps {
 }
 
 /**
- * Flat vector-style virtual assistant matching the new brand illustration.
- * The file name/export is kept so Hero.tsx and all voice logic stay untouched.
+ * Flat vector assistant matching the supplied reference: smaller full-body
+ * character, fair skin, lavender hijab and outfit, moving hands and lipsync.
  */
 export default function Assistant3D({ mode, muted }: AssistantAvatarProps) {
   const speaking = mode === 'speaking';
@@ -26,7 +26,7 @@ export default function Assistant3D({ mode, muted }: AssistantAvatarProps) {
           .as-wave { animation: asWave 700ms ease-in-out infinite; transform-box: fill-box; transform-origin: 85% 90%; }
           .as-gesture { animation: asGesture 1.6s ease-in-out infinite; transform-box: fill-box; transform-origin: 20% 90%; }
           .as-pulse { animation: asPulse 2.4s ease-in-out infinite; }
-          @keyframes asFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
+          @keyframes asFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
           @keyframes asSpin { to{transform:rotate(360deg)} }
           @keyframes asBlink { 0%,92%,100%{transform:scaleY(1)} 95%{transform:scaleY(.08)} }
           @keyframes asTalk { 0%,100%{transform:scaleY(.6)} 50%{transform:scaleY(1.45)} }
@@ -37,108 +37,107 @@ export default function Assistant3D({ mode, muted }: AssistantAvatarProps) {
 
         <defs>
           <linearGradient id="asHijab" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="#4c2580" />
-            <stop offset="0.55" stopColor="#3a1c66" />
-            <stop offset="1" stopColor="#2a164f" />
+            <stop offset="0" stopColor="#cbb3ef" />
+            <stop offset="0.55" stopColor="#b28ce6" />
+            <stop offset="1" stopColor="#9a72d8" />
           </linearGradient>
           <linearGradient id="asRobe" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#4a247d" />
-            <stop offset="1" stopColor="#2c1851" />
+            <stop offset="0" stopColor="#d6c2f5" />
+            <stop offset="1" stopColor="#b795e8" />
           </linearGradient>
           <linearGradient id="asPanel" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#8b5cf6" />
-            <stop offset="1" stopColor="#5b2a91" />
+            <stop offset="0" stopColor="#b28ce6" />
+            <stop offset="1" stopColor="#8b5cf6" />
           </linearGradient>
           <radialGradient id="asGlow" cx="50%" cy="45%" r="55%">
-            <stop offset="0" stopColor="#a855f7" stopOpacity=".22" />
-            <stop offset="1" stopColor="#a855f7" stopOpacity="0" />
+            <stop offset="0" stopColor="#c084fc" stopOpacity=".18" />
+            <stop offset="1" stopColor="#c084fc" stopOpacity="0" />
           </radialGradient>
         </defs>
 
-        {/* Ambient glow and orbiting rings */}
-        <circle cx="260" cy="255" r="235" fill="url(#asGlow)" />
-        <circle cx="260" cy="255" r="205" fill="none" stroke="#b794ff" strokeOpacity=".28" strokeWidth="1" />
-        <circle className="as-ring" cx="260" cy="255" r="172" fill="none" stroke="#c4b5fd" strokeOpacity=".4" strokeWidth="1.2" strokeDasharray="3 9" />
-        <circle className="as-ring-rev" cx="260" cy="255" r="140" fill="none" stroke="#a78bfa" strokeOpacity=".3" strokeWidth="1" strokeDasharray="2 12" />
-        <circle className="as-pulse" cx="448" cy="118" r="4" fill="#d8b4fe" />
-        <circle className="as-pulse" cx="72" cy="388" r="3" fill="#d8b4fe" />
+        {/* Ambient glow, rings and floating labels */}
+        <circle cx="260" cy="270" r="230" fill="url(#asGlow)" />
+        <circle cx="260" cy="270" r="205" fill="none" stroke="#b794f6" strokeOpacity=".3" strokeWidth="1" />
+        <circle className="as-ring" cx="260" cy="270" r="170" fill="none" stroke="#c4b5fd" strokeOpacity=".42" strokeWidth="1.2" strokeDasharray="3 9" />
+        <circle className="as-ring-rev" cx="260" cy="270" r="138" fill="none" stroke="#a78bfa" strokeOpacity=".32" strokeWidth="1" strokeDasharray="2 12" />
+        <circle className="as-pulse" cx="446" cy="132" r="4" fill="#c084fc" />
+        <circle className="as-pulse" cx="74" cy="392" r="3" fill="#c084fc" />
 
-        {/* Floating tech labels */}
-        <g transform="translate(44 168)">
-          <rect width="78" height="32" rx="16" fill="#1d1033" stroke="#7c3aed" strokeOpacity=".55" />
-          <circle cx="17" cy="16" r="3" fill="#c084fc" />
-          <text x="45" y="21" textAnchor="middle" fontSize="13" fill="#ede9fe" fontFamily="inherit">react</text>
+        <g transform="translate(46 178)">
+          <rect width="76" height="30" rx="15" fill="#f7f2ff" stroke="#b794f6" strokeOpacity=".6" />
+          <circle cx="16" cy="15" r="3" fill="#8b5cf6" />
+          <text x="44" y="20" textAnchor="middle" fontSize="13" fill="#5b3a8f" fontFamily="inherit">react</text>
         </g>
-        <g transform="translate(56 344)">
-          <rect width="58" height="32" rx="16" fill="#1d1033" stroke="#7c3aed" strokeOpacity=".55" />
-          <text x="29" y="21" textAnchor="middle" fontSize="13" fill="#ddd6fe" fontFamily="inherit">&lt;/&gt;</text>
+        <g transform="translate(58 352)">
+          <rect width="56" height="30" rx="15" fill="#f7f2ff" stroke="#b794f6" strokeOpacity=".6" />
+          <text x="28" y="20" textAnchor="middle" fontSize="13" fill="#5b3a8f" fontFamily="inherit">&lt;/&gt;</text>
         </g>
-        <g transform="translate(430 138)">
-          <rect width="50" height="30" rx="15" fill="#1d1033" stroke="#7c3aed" strokeOpacity=".55" />
-          <text x="25" y="20" textAnchor="middle" fontSize="13" fill="#ddd6fe" fontFamily="inherit">ai</text>
+        <g transform="translate(430 150)">
+          <rect width="48" height="28" rx="14" fill="#f7f2ff" stroke="#b794f6" strokeOpacity=".6" />
+          <text x="24" y="19" textAnchor="middle" fontSize="13" fill="#5b3a8f" fontFamily="inherit">ai</text>
         </g>
 
-        {/* Character */}
+        {/* Character — smaller, full body, lavender outfit */}
         <g className="as-float">
           {/* Robe */}
-          <path d="M168 300 C156 372 146 456 134 548 L386 548 C374 456 364 372 352 300 Z" fill="url(#asRobe)" />
-          <path d="M232 306 L288 306 L304 548 L216 548 Z" fill="url(#asPanel)" opacity=".62" />
-          <path d="M168 300 C156 372 146 456 134 548 L186 548 C190 450 196 370 202 306 Z" fill="#5b2a91" opacity=".45" />
-          <path d="M352 300 C364 372 374 456 386 548 L334 548 C330 450 324 370 318 306 Z" fill="#5b2a91" opacity=".45" />
+          <path d="M186 312 C176 380 168 462 158 528 L362 528 C352 462 344 380 334 312 Z" fill="url(#asRobe)" />
+          <path d="M238 316 L282 316 L296 528 L224 528 Z" fill="url(#asPanel)" opacity=".65" />
+          <path d="M186 312 C176 380 168 462 158 528 L204 528 C208 452 212 380 216 316 Z" fill="#b28ce6" opacity=".4" />
+          <path d="M334 312 C344 380 352 462 362 528 L316 528 C312 452 308 380 304 316 Z" fill="#b28ce6" opacity=".4" />
 
-          {/* Small flower accent */}
-          <g transform="translate(260 338)">
+          {/* Flower accent */}
+          <g transform="translate(260 348)">
             {[0, 72, 144, 216, 288].map((angle) => (
-              <ellipse key={angle} cx="0" cy="-9" rx="5.5" ry="9" fill="#e9d5ff" transform={`rotate(${angle})`} />
+              <ellipse key={angle} cx="0" cy="-8" rx="4.8" ry="8" fill="#f3e8ff" transform={`rotate(${angle})`} />
             ))}
-            <circle r="4.5" fill="#fcd34d" />
+            <circle r="4" fill="#fcd34d" />
           </g>
 
-          {/* Hijab outer drape */}
-          <path d="M260 92 C184 92 142 150 142 226 C142 306 138 372 122 432 L196 432 C208 360 208 292 208 232 C208 186 230 154 260 154 C290 154 312 186 312 232 C312 292 312 360 324 432 L398 432 C382 372 378 306 378 226 C378 150 336 92 260 92 Z" fill="url(#asHijab)" />
-          <path d="M260 108 C202 108 170 156 170 218 C170 282 202 314 260 314 C318 314 350 282 350 218 C350 156 318 108 260 108 Z" fill="#281448" opacity=".55" />
+          {/* Hijab drape */}
+          <path d="M260 112 C196 112 160 162 160 230 C160 302 156 360 144 418 L204 418 C214 356 214 296 214 236 C214 194 234 166 260 166 C286 166 306 194 306 236 C306 296 306 356 316 418 L376 418 C364 360 360 302 360 230 C360 162 324 112 260 112 Z" fill="url(#asHijab)" />
+          <path d="M260 126 C210 126 182 168 182 222 C182 278 212 306 260 306 C308 306 338 278 338 222 C338 168 310 126 260 126 Z" fill="#8b5cf6" opacity=".22" />
 
-          {/* Face */}
-          <ellipse cx="260" cy="214" rx="60" ry="67" fill="#e9a98a" />
-          <ellipse cx="202" cy="220" rx="7" ry="10" fill="#dda086" />
-          <ellipse cx="318" cy="220" rx="7" ry="10" fill="#dda086" />
+          {/* Face — fair skin */}
+          <ellipse cx="260" cy="214" rx="55" ry="62" fill="#f1d8c9" />
+          <ellipse cx="207" cy="220" rx="6" ry="9" fill="#e8c5b5" />
+          <ellipse cx="313" cy="220" rx="6" ry="9" fill="#e8c5b5" />
 
-          {/* Eyes + brows */}
+          {/* Eyes, brows, lashes */}
           <g className="as-blink">
-            {[238, 282].map((x) => (
+            {[240, 280].map((x) => (
               <g key={x}>
-                <ellipse cx={x} cy="204" rx="12" ry="7.5" fill="#fffdfb" />
-                <circle cx={x} cy="204" r="6.2" fill="#7c3aed" />
-                <circle cx={x} cy="204" r="3" fill="#21133a" />
-                <circle cx={x - 2.2} cy="201.5" r="1.8" fill="#fff" />
+                <ellipse cx={x} cy="204" rx="11" ry="7" fill="#fffdfb" />
+                <circle cx={x} cy="204" r="5.6" fill="#7c3aed" />
+                <circle cx={x} cy="204" r="2.8" fill="#2a164f" />
+                <circle cx={x - 2} cy="201.5" r="1.6" fill="#fff" />
               </g>
             ))}
           </g>
-          <path d="M224 188 Q238 181 252 188" stroke="#3b2445" strokeWidth="3" strokeLinecap="round" fill="none" />
-          <path d="M268 188 Q282 181 296 188" stroke="#3b2445" strokeWidth="3" strokeLinecap="round" fill="none" />
-          <path d="M224 188 l-6 -4 M296 188 l6 -4" stroke="#3b2445" strokeWidth="2" strokeLinecap="round" />
+          <path d="M226 189 Q240 183 253 189" stroke="#6b4a63" strokeWidth="2.6" strokeLinecap="round" fill="none" />
+          <path d="M267 189 Q280 183 294 189" stroke="#6b4a63" strokeWidth="2.6" strokeLinecap="round" fill="none" />
+          <path d="M226 189 l-5 -4 M294 189 l5 -4" stroke="#6b4a63" strokeWidth="1.8" strokeLinecap="round" />
 
           {/* Blush + nose */}
-          <ellipse cx="224" cy="230" rx="10" ry="6" fill="#e07f8f" opacity=".28" />
-          <ellipse cx="296" cy="230" rx="10" ry="6" fill="#e07f8f" opacity=".28" />
-          <path d="M258 218 q6 8 -2 11" stroke="#c77f68" strokeWidth="2.4" strokeLinecap="round" fill="none" />
+          <ellipse cx="228" cy="230" rx="9" ry="5.5" fill="#e79ba0" opacity=".25" />
+          <ellipse cx="292" cy="230" rx="9" ry="5.5" fill="#e79ba0" opacity=".25" />
+          <path d="M258 218 q5 7 -2 10" stroke="#d1a08d" strokeWidth="2.2" strokeLinecap="round" fill="none" />
 
-          {/* Mouth: animated while speaking, otherwise a soft smile */}
+          {/* Small, subtle lipsync mouth */}
           {speaking ? (
-            <ellipse className="as-talk" cx="260" cy="248" rx="5" ry="3.2" fill={muted ? '#b97385' : '#9c4f68'} />
+            <ellipse className="as-talk" cx="260" cy="248" rx="4" ry="2.6" fill={muted ? '#b97a8b' : '#a05468'} />
           ) : (
-            <path d="M246 244 Q260 257 274 244" stroke={muted ? '#b97385' : '#9c4f68'} strokeWidth="3.2" strokeLinecap="round" fill="none" />
+            <path d="M248 245 Q260 255 272 245" stroke={muted ? '#b97a8b' : '#a05468'} strokeWidth="2.8" strokeLinecap="round" fill="none" />
           )}
-          {listening && <circle cx="260" cy="278" r="3" fill="#c084fc" />}
+          {listening && <circle cx="260" cy="276" r="2.6" fill="#b794f6" />}
 
-          {/* Hands */}
-          <g className={waving ? 'as-wave' : speaking ? 'as-gesture' : ''} transform="translate(0 0)">
-            <ellipse cx="372" cy="474" rx="21" ry="29" fill="#e9a98a" />
-            <path d="M360 456 q12 -8 24 0" stroke="#dda086" strokeWidth="3" strokeLinecap="round" fill="none" />
+          {/* Hands — visible and animated */}
+          <g className={waving ? 'as-wave' : speaking ? 'as-gesture' : ''}>
+            <ellipse cx="354" cy="486" rx="18" ry="25" fill="#f1d8c9" />
+            <path d="M344 470 q10 -7 20 0" stroke="#e8c5b5" strokeWidth="2.4" strokeLinecap="round" fill="none" />
           </g>
           <g className={speaking ? 'as-gesture' : ''}>
-            <ellipse cx="148" cy="474" rx="21" ry="29" fill="#e9a98a" />
-            <path d="M136 456 q12 -8 24 0" stroke="#dda086" strokeWidth="3" strokeLinecap="round" fill="none" />
+            <ellipse cx="166" cy="486" rx="18" ry="25" fill="#f1d8c9" />
+            <path d="M156 470 q10 -7 20 0" stroke="#e8c5b5" strokeWidth="2.4" strokeLinecap="round" fill="none" />
           </g>
         </g>
       </svg>
