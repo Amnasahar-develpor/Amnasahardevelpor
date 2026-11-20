@@ -149,13 +149,31 @@ Railway / Fly.io:
 Any standard Node host works as long as it runs `npm run build` then `npm start` and provides a
 persistent volume for `DATA_DIR`.
 
-### Vercel / Netlify note
+### Vercel (fully supported)
 
-Vercel and Netlify are excellent for static sites, but their serverless file systems are ephemeral.
-A file-backed database would reset there. To deploy on those platforms, connect `server/store.js`
-to a hosted store (for example Vercel Blob, Netlify Blobs, Supabase or Postgres) and keep the same
-`read()`/`mutate()` interface; the UI and admin endpoints need no changes. This is the only
-integration point that must be adapted for serverless hosting.
+The project includes a Vercel serverless API at `api/[...path].js`, so `/api/content`,
+`/api/config`, `/api/contact` and every Admin Mode route work in production — no separate server
+is needed. `vercel.json` configures the Vite build.
+
+1. Import the repository into Vercel. It detects Vite; `vercel.json` sets the build command and `dist` output.
+2. Set these environment variables in **Vercel → Project Settings → Environment Variables**:
+   - `SESSION_SECRET` — a long random string (signs the admin cookie).
+   - `ADMIN_PASSWORD` — your private admin password.
+   - `BLOB_READ_WRITE_TOKEN` — **required for Admin Mode and the contact form**. Create a store at
+     **Vercel → Storage → Create Database → Blob**, then copy its token here.
+   - Optional: `CONTACT_EMAIL`, SMTP variables, `ELEVENLABS_API_KEY` / `ELEVENLABS_VOICE_ID`.
+3. Redeploy. The public gallery loads from the serverless API and the “Content service unavailable”
+   banner disappears. Projects, certificates, services, images and messages persist in Vercel Blob.
+
+If `BLOB_READ_WRITE_TOKEN` is missing, the public site still works from the seeded content, but
+Admin Mode write actions and the contact form return a clear `503` message instead of falsely
+reporting success.
+
+### Netlify note
+
+Netlify needs the same serverless API pattern. The Express app in `server/app.js` can be wrapped with
+`serverless-http` in a Netlify function, and `server/store.js` can be pointed at Netlify Blobs using
+the same `refresh()` / `mutate()` interface. No frontend changes are required.
 
 ---
 
@@ -170,9 +188,13 @@ amna-sahar-portfolio/
 ├── .env.example
 ├── Dockerfile
 ├── render.yaml
+├── vercel.json        # Vercel Vite build + serverless function config
+├── api/
+│   └── [...path].js   # Vercel catch-all serverless API (wraps server/app.js)
 ├── server/
-│   ├── index.js       # API routes, static serving, contact and voice endpoints
-│   ├── store.js       # persistent JSON database and image storage
+│   ├── index.js       # local/Node entry point (starts the HTTP listener)
+│   ├── app.js         # Express app with every API route (shared by Node + Vercel)
+│   ├── store.js       # JSON file locally / Vercel Blob in production
 │   ├── seed.js        # factual seed content (no invented details)
 │   ├── auth.js        # session signing, password check, rate limit
 │   └── validate.js    # server-side validation for every write
@@ -199,6 +221,7 @@ npm run build          # TypeScript check + Vite production build
 npm start              # in another terminal
 npm run test:api       # auth, 5 project adds, edit, public visibility, certificate, contact, deletes
 npm run test:ui        # browser check: 3D canvas, themes, admin CRUD, uploads, contact, mobile menu
+npm run test:vercel    # verifies the /api catch-all function in Vercel mode
 ```
 
 The smoke tests create and remove their own test records, leaving the portfolio data unchanged.
